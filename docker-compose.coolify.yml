@@ -14,6 +14,7 @@ services:
     volumes:
       - hl-data:/home/hluser/hl/data
       - hl-hyperliquid-data:/home/hluser/hl/hyperliquid_data
+      - ./override_gossip_config.json:/home/hluser/override_gossip_config.json:ro
     command: [
       "--replica-cmds-style", "recent-actions",
       "--batch-by-block",
