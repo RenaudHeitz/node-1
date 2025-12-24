@@ -47,6 +47,7 @@ services:
 
   # Archive node - Stage 1: Sync from buddy's RPC
   # Once synced, switch to Stage 2 (see docker-compose.archive-local.yml)
+  # Build from source using https://github.com/wesraph/nanoreth/tree/feat/sync-remote-rpc
   archive:
     build:
       context: .

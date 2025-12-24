@@ -1,5 +1,32 @@
+# Multi-stage build for reth-hl (nanoreth)
+# Build from source using https://github.com/wesraph/nanoreth/tree/feat/sync-remote-rpc
+
+# Stage 1: Build reth-hl from source
+FROM rust:1.83-bookworm AS builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    clang \
+    pkg-config \
+    libssl-dev \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and build nanoreth
+RUN git clone https://github.com/wesraph/nanoreth.git . && \
+    git checkout feat/sync-remote-rpc && \
+    cargo install --path .
+
+# Stage 2: Runtime image
 FROM ubuntu:24.04
+
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY ./target/maxperf/reth-hl /usr/local/bin/reth-hl
+
+# Copy built binary from builder
+COPY --from=builder /usr/local/cargo/bin/reth-hl /usr/local/bin/reth-hl
+
 WORKDIR /data
 ENTRYPOINT ["/usr/local/bin/reth-hl"]
