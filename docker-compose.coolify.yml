@@ -20,6 +20,7 @@ services:
     volumes:
       - hl-data:/home/hluser/hl/data
       - hl-hyperliquid-data:/home/hluser/hl/hyperliquid_data
+      - ./override_gossip_config.json:/home/hluser/override_gossip_config.json:ro
     # RPC servers enabled
     # Internal access: http://hyperliquid-node:3001/evm (from other containers)
     command: [

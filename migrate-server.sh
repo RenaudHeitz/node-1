@@ -48,7 +48,7 @@ mkdir -p "$DATA_DIR"
 # Step 3: Transfer main node data
 echo -e "${YELLOW}[3/6] Transferring main node data (this may take a while)...${NC}"
 rsync -avz --progress \
-    "$OLD_SERVER:/var/lib/docker/volumes/node-1_hl-data/_data/" \
+    "$OLD_SERVER:/var/lib/docker/volumes/hyperliquid_hl-data/_data/" \
     "$BACKUP_DIR/hl-data/"
 
 # Step 4: Transfer archive data (if exists)
@@ -71,16 +71,27 @@ rsync -avz --progress \
 # Step 6: Restore volumes on new server
 echo -e "${YELLOW}[6/6] Restoring volumes...${NC}"
 
-# Create docker volumes
-docker volume create node-1_hl-data 2>/dev/null || true
-docker volume create node-1_hl-hyperliquid-data 2>/dev/null || true
+# Create docker volumes (for Coolify: uses project name "hyperliquid")
+docker volume create hyperliquid_hl-data 2>/dev/null || true
+docker volume create hyperliquid_hl-hyperliquid-data 2>/dev/null || true
+docker volume create hyperliquid_archive-data 2>/dev/null || true
 
-# Copy data to volume (using temporary container)
+# Copy hl-data to volume (using temporary container)
 docker run --rm \
-    -v "node-1_hl-data:/target" \
+    -v "hyperliquid_hl-data:/target" \
     -v "$BACKUP_DIR/hl-data:/source" \
     alpine:latest \
     sh -c "cp -a /source/. /target/"
+
+# Copy archive-data to volume (if exists)
+if [ -d "$BACKUP_DIR/archive-data" ]; then
+    echo "Restoring archive data..."
+    docker run --rm \
+        -v "hyperliquid_archive-data:/target" \
+        -v "$BACKUP_DIR/archive-data:/source" \
+        alpine:latest \
+        sh -c "cp -a /source/. /target/"
+fi
 
 # Start the node
 echo -e "${GREEN}Starting node on new server...${NC}"

@@ -1,0 +1,10 @@
+{
+  "root_node_ips": [
+    {"Ip": "157.90.207.92"},
+    {"Ip": "91.134.71.237"},
+    {"Ip": "57.129.140.247"}
+  ],
+  "try_new_peers": true,
+  "chain": "Mainnet",
+  "reserved_peer_ips": []
+}
