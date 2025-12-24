@@ -1,5 +1,5 @@
 # Docker Compose for Coolify Deployment
-# This version removes external network dependencies for easy Coolify deployment
+# Optimized for Ryzen 9 5950X (16 cores / 32 threads)
 #
 # COOLIFY SETUP:
 # 1. Create new application in Coolify
@@ -34,10 +34,10 @@ services:
       resources:
         limits:
           memory: 64G
-          cpus: '10'
+          cpus: '14'
         reservations:
           memory: 16G
-          cpus: '6'
+          cpus: '8'
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1
       - net.ipv6.conf.default.disable_ipv6=1
@@ -63,6 +63,14 @@ services:
         hard: 65536
     environment:
       - RUST_LOG=warn
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+          cpus: '8'
+        reservations:
+          memory: 8G
+          cpus: '4'
     command:
       - node
       - --datadir

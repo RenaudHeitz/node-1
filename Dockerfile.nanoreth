@@ -1,0 +1,5 @@
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY ./target/maxperf/reth-hl /usr/local/bin/reth-hl
+WORKDIR /data
+ENTRYPOINT ["/usr/local/bin/reth-hl"]
