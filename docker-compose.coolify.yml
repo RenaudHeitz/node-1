@@ -1,11 +1,5 @@
 # Docker Compose for Coolify Deployment
 # Optimized for Ryzen 9 5950X (16 cores / 32 threads)
-#
-# COOLIFY SETUP:
-# 1. Create new application in Coolify
-# 2. Select "Docker Compose" as type
-# 3. Point to this repo
-# 4. Set environment variables if needed
 
 name: "hyperliquid"
 
@@ -21,8 +15,6 @@ services:
       - hl-data:/home/hluser/hl/data
       - hl-hyperliquid-data:/home/hluser/hl/hyperliquid_data
       - ./override_gossip_config.json:/home/hluser/override_gossip_config.json:ro
-    # RPC servers enabled
-    # Internal access: http://hyperliquid-node:3001/evm (from other containers)
     command: [
       "--replica-cmds-style", "recent-actions",
       "--batch-by-block",
@@ -45,65 +37,6 @@ services:
     networks:
       - hyperliquid
 
-  # Archive node - Stage 1: Sync from buddy's RPC
-  # Once synced, switch to Stage 2 (see docker-compose.archive-local.yml)
-  # DISABLED: Build takes too long for Coolify, will deploy separately
-  # archive:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.nanoreth
-    container_name: hyperliquid-archive
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:18545:18545"
-      - "127.0.0.1:18546:18546"
-    volumes:
-      - archive-data:/data
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
-    environment:
-      - RUST_LOG=warn
-    deploy:
-      resources:
-        limits:
-          memory: 32G
-          cpus: '8'
-        reservations:
-          memory: 8G
-          cpus: '4'
-    command:
-      - node
-      - --datadir
-      - /data
-      - --db.max-readers
-      - "4096"
-      - --http.addr
-      - 0.0.0.0
-      - --http.port
-      - "18545"
-      - --ws.addr
-      - 0.0.0.0
-      - --ws.port
-      - "18546"
-      - --rpc.max-connections
-      - "2048"
-      # STAGE 1: Sync from buddy's RPC with snapshot data
-      # Once synced (check with eth_syncing), switch to Stage 2
-      - --block-source-rpc
-      - http://85.10.200.167:8545
-      - --authrpc.port
-      - "0"
-      - --http
-      - --ws
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=1
-    networks:
-      - hyperliquid
-    # IMPORTANT: Disable this service after syncing to Stage 2
-    # Use: docker compose stop archive
-
   pruner:
     restart: unless-stopped
     build: ./pruner
@@ -122,6 +55,4 @@ volumes:
   hl-data:
     driver: local
   hl-hyperliquid-data:
-    driver: local
-  archive-data:
     driver: local
