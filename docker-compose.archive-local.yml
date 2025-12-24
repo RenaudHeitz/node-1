@@ -1,0 +1,55 @@
+# Docker Compose - Archive Node Stage 2: Local Sync
+# Use this AFTER initial sync from buddy's RPC is complete
+#
+# TO SWITCH:
+# 1. Verify sync is complete: curl http://localhost:18545 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}'
+# 2. Stop archive: docker compose stop archive
+# 3. Use this file: docker compose -f docker-compose.coolify.yml -f docker-compose.archive-local.yml up -d archive
+
+name: "hyperliquid"
+
+services:
+  # Override for archive service - switch to local node sync
+  archive:
+    container_name: hyperliquid-archive
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18545:18545"
+      - "127.0.0.1:18546:18546"
+    volumes:
+      - archive-data:/data
+      # Read-only access to main node's EVM blocks
+      - hl-data:/hl-data:ro
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    environment:
+      - RUST_LOG=warn
+    command:
+      - node
+      - --datadir
+      - /data
+      - --db.max-readers
+      - "4096"
+      - --http.addr
+      - 0.0.0.0
+      - --http.port
+      - "18545"
+      - --ws.addr
+      - 0.0.0.0
+      - --ws.port
+      - "18546"
+      - --rpc.max-connections
+      - "2048"
+      # STAGE 2: Sync from local node (fully independent)
+      - --local-ingest-dir
+      - /hl-data/evm_block_and_receipts
+      - --authrpc.port
+      - "0"
+      - --http
+      - --ws
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+    networks:
+      - hyperliquid
